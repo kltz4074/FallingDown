@@ -1,2 +1,11 @@
 build/*
 .cache
+.cmake
+FallingDown
+_deps
+CMakeFiles
+cmake_install.cmake
+Makefile
+CPackSourceConfig.cmake
+CPackConfig.cmake
+CMakeCache.txt
