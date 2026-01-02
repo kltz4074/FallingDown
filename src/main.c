@@ -41,6 +41,8 @@ int main(void)
 
     while (!WindowShouldClose())
     {
+        door1Rotation += 0.5;
+        door2Rotation += 0.5;
 
         BeginDrawing();
         ClearBackground(backgroundColor);
