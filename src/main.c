@@ -1,6 +1,5 @@
-#include "raylib.h"
+#include <raylib.h>
 #define RAYGUI_IMPLEMENTATION
-#include "../lib/raygui.h"           
 
 int main(void)
 {
@@ -10,7 +9,8 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "FallingDown");
 
     SetTargetFPS(120); 
-    Rectangle TestRec = {screenWidth/2.0, screenHeight/2.0, 320, 80};
+    Rectangle Door1 = {400, 20, 320, 60};
+    Rectangle Door2 = {50, 20, 320, 60};
 
     Color BackroundColor = {18, 18, 18, 1};
 
@@ -21,7 +21,9 @@ int main(void)
 
         ClearBackground(BackroundColor);
 
-        DrawRectangleRounded(TestRec, 0.3f, 0.0f, WHITE);
+        DrawRectangleRounded(Door1, 0.3f, 0.0f, WHITE);
+        DrawRectangleRounded(Door2, 0.3f, 0.0f, WHITE);
+
         EndDrawing();
     }
 
