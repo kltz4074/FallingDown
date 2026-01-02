@@ -11,22 +11,19 @@ int main(void)
 
     SetTargetFPS(120);
 
-    // Размеры дверей
-    const int doorWidth = 320;
+    const int doorWidth = 400;
     const int doorHeight = 60;
 
-    // Позиции
-    Vector2 door1Pos = { 400, 200 };
-    Vector2 door2Pos = { 400, 300 };
+    Vector2 door1Pos = { 200, 100 };
+    Vector2 door2Pos = { 600, 100 };
 
-    // Углы поворота
-    float door1Rotation = 0.0f;
-    float door2Rotation = 0.0f;
+    // rotations
+    float door1Rotation = 15.0f;
+    float door2Rotation = -15.0f;
 
     // RenderTextures
     RenderTexture2D doorRT = LoadRenderTexture(doorWidth, doorHeight);
 
-    // Отрисовываем rounded rect один раз в текстуру
     BeginTextureMode(doorRT);
         ClearBackground(BLANK);
         DrawRectangleRounded(
@@ -41,8 +38,6 @@ int main(void)
 
     while (!WindowShouldClose())
     {
-        door1Rotation += 0.5;
-        door2Rotation += 0.5;
 
         BeginDrawing();
         ClearBackground(backgroundColor);
