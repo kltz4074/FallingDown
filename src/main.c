@@ -9,26 +9,20 @@
 
 #define FIXED_DT      (1.0f / 60.0f)
 
-// Physics
 #define GRAVITY        1200.0f
 #define JUMP_FORCE    -420.0f
 
-// Pipes
 #define PIPE_SPEED     220.0f
 #define PIPE_WIDTH      90
 #define GAP_HEIGHT     160
 #define PIPE_COUNT       3
 #define PIPE_SPACING   300
 
-// Visuals
 #define ROUNDNESS     0.35f
 #define SEGMENTS        14
 #define SHADOW_OFFSET   8
 
-// Day/Night
 #define DAY_CYCLE_DURATION 60.0f
-
-// --------------------------------------------------
 
 typedef struct {
     float x;
@@ -45,7 +39,6 @@ typedef struct {
     float scale;
 } CloudLayer;
 
-// --------------------------------------------------
 
 void DrawPipe(Rectangle r, Color color)
 {
@@ -63,8 +56,6 @@ void DrawPipeShadow(Rectangle r)
     DrawRectangleRounded(s, ROUNDNESS, SEGMENTS, (Color){0,0,0,80});
 }
 
-// --------------------------------------------------
-
 int main(void)
 {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Flappy Bird");
@@ -76,7 +67,7 @@ int main(void)
     Vector2 birdPrev = birdPos;
     float birdVel = 0.0f;
     float birdR   = 18.0f;
-    // Pipes
+
     Pipe pipes[PIPE_COUNT];
     for (int i = 0; i < PIPE_COUNT; i++)
     {
@@ -84,14 +75,12 @@ int main(void)
         pipes[i].gapY  = 140 + rand() % (SCREEN_HEIGHT - 280);
         pipes[i].passed = false;
     }
-    // Clouds
     CloudLayer clouds[3] = {
         {0, 10, {255,255,255,50},  70, 1.0f},
         {0, 20, {255,255,255,70}, 110, 1.2f},
         {0, 35, {255,255,255,90}, 150, 1.4f}
     };
 
-    // Sky colors
     Color skyTop[4] = {
         { 90,180,255,255},
         {255,140, 80,255},
@@ -105,6 +94,16 @@ int main(void)
         { 60, 70,120,255},
         {200,230,255,255}
     };
+
+    Color pipeColors[4] = {
+        { 20, 200,  20, 255},  // Day
+        {180, 140,  40, 255},  // Evening 
+        { 40, 120,  90, 255},  // Night
+        {120, 200, 140, 255}   // Morning
+    };
+
+    Color textColorDay   = DARKGRAY;        
+    Color textColorNight = (Color){200, 200, 230, 255}; 
 
     float dayTimer = 0.0f;
 
@@ -198,19 +197,34 @@ int main(void)
                     gameOver = true;
             }
 
-            for (int i = 0; i < 3; i++)
+            // Clouds
+            for (int l = 0; l < 3; l++)
             {
-                clouds[i].offset += clouds[i].speed * FIXED_DT;
-                if (clouds[i].offset > SCREEN_WIDTH + 200)
-                    clouds[i].offset = -200;
+                clouds[l].offset += clouds[l].speed * FIXED_DT;
+
+                float step = 180.0f;
+                if (clouds[l].offset > step) clouds[l].offset -= step;
+
+                for (float x = -step; x < SCREEN_WIDTH + step; x += step)
+                {
+                    float cx = x - clouds[l].offset;
+                    float y  = clouds[l].y;
+                    float s  = clouds[l].scale;
+                    Color c  = clouds[l].color;
+
+                    DrawCircleV((Vector2){cx, y},           18*s, c);
+                    DrawCircleV((Vector2){cx+20*s, y-8*s},  22*s, c);
+                    DrawCircleV((Vector2){cx+45*s, y},      18*s, c);
+                }
             }
+
 
             acc -= FIXED_DT;
         }
 
         float alpha = acc / FIXED_DT;
 
-        // --- Day/Night ---
+        // Day/Night
         float phaseLen = DAY_CYCLE_DURATION / 4.0f;
         int   p  = (int)(dayTimer / phaseLen);
         int   np = (p + 1) % 4;
@@ -218,13 +232,21 @@ int main(void)
 
         Color top = ColorLerp(skyTop[p], skyTop[np], pa);
         Color bot = ColorLerp(skyBot[p], skyBot[np], pa);
+        Color pipeColor = ColorLerp(pipeColors[p], pipeColors[np], pa);
 
         float t = dayTimer / DAY_CYCLE_DURATION;
         float night = sinf(t * 2.0f * PI - PI / 2.0f);
         if (night < 0) night = 0;
         if (night > 1) night = 1;
 
-        // --------------------------------------------------
+        Color textColor = ColorLerp(textColorDay, textColorNight, night);
+
+        if (night > 0.0f)
+        {
+            Color fogColor = (Color){60, 70, 90, (unsigned char)(120 * night)};
+            DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, fogColor);
+        }
+
         BeginDrawing();
 
         DrawRectangleGradientV(0,0,SCREEN_WIDTH,SCREEN_HEIGHT, top, bot);
@@ -262,8 +284,8 @@ int main(void)
 
             DrawPipeShadow(t);
             DrawPipeShadow(b);
-            DrawPipe(t, GREEN);
-            DrawPipe(b, GREEN);
+            DrawPipe(t, pipeColor);
+            DrawPipe(b, pipeColor);
         }
 
         Vector2 bi = {
@@ -271,25 +293,26 @@ int main(void)
             birdPrev.y + (birdPos.y - birdPrev.y) * alpha
         };
 
+        // count text
         DrawCircleV(bi, birdR, YELLOW);
 
-        DrawText(TextFormat("Score: %d", score), 20, 40, 30, DARKGRAY);
-        DrawFPS(20, 10);
+        DrawText(TextFormat("Score: %d", score), 20, 40, 30, textColor);
 
         if (!started)
             DrawText("PRESS SPACE TO START",
                     SCREEN_WIDTH/2-170, SCREEN_HEIGHT/2-20,
-                    30, DARKGRAY);
+                    30, textColor);
 
         if (gameOver)
         {
             DrawText("GAME OVER",
                     SCREEN_WIDTH/2-120, SCREEN_HEIGHT/2-40,
-                    40, RED);
+                    40, RED); // красный оставляем всегда
             DrawText("Press R to restart",
                     SCREEN_WIDTH/2-140, SCREEN_HEIGHT/2+10,
-                    20, DARKGRAY);
+                    20, textColor);
         }
+
 
         EndDrawing();
     }
